@@ -13,7 +13,7 @@ AlbaCallback - обработчик для обратного вызова от 
 
        from alba_client import AlbaService, AlbaException
 
-       service = AlbaService(<service-id>, '<service-name>', '<service-secret>')
+       service = AlbaService(<service-id>, '<service-secret>')
        try:
            service.init_payment('mc', 10, 'Test', 'test@example.com', '71111111111')
        except AlbaException, e:
@@ -27,7 +27,7 @@ AlbaCallback - обработчик для обратного вызова от 
            def callback_success(self, data):
                # фиксирование успешной транзакции
 
-       service1 = AlbaService(<service1-id>, '<service1-name>', '<service1-secret>')
-       service2 = AlbaService(<service2-id>, '<service2-name>', '<service2-secret>')
+       service1 = AlbaService(<service1-id>, '<service1-secret>')
+       service2 = AlbaService(<service2-id>, '<service2-secret>')
        callback = MyAlbaCallback([service1, service2])
        callback.handle(<словарь-c-POST-данными>)

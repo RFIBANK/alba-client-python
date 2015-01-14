@@ -48,14 +48,12 @@ def sign(method, url, params, secret_key, exclude=['check', 'mac']):
 class AlbaService(object):
     BASE_URL = 'https://partner.rficb.ru/'
 
-    def __init__(self, service_id, user_name, secret, logger=None):
+    def __init__(self, service_id, secret, logger=None):
         """
         service_id идентификатор сервиса
-        user_name имя пользователя
         secret секретный ключ сервиса
         """
         self.service_id = service_id
-        self.user_name = user_name
         self.secret = secret
         if logger:
             self.logger = logger
