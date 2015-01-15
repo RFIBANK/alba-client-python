@@ -135,8 +135,9 @@ class AlbaService(object):
         Получение информации о транзакции
         tid идентификатор транзакции
         """
-        params = {'api_key': self.secret, 'tid': tid}
+        params = {'tid': tid, 'version': '2.0'}
         url = self.BASE_URL + "a1lite/details/"
+        params['check'] = sign("POST", url, params, self.secret)
         answer = self._post(url, params)
         return answer
 
@@ -145,10 +146,11 @@ class AlbaService(object):
         проведение возврата
         gate короткое имя шлюза
         """
-        fields = {'api_key': self.secret,
-                  'amount': amount,
-                  'tid': tid}
         url = self.BASE_URL + "a1lite/refund/"
+        fields = {'amount': amount,
+                  'version': '2.0',
+                  'tid': tid}
+        fields['check'] = sign("POST", url, fields, self.secret)
         answer = self._post(url, fields)
         return answer
 
@@ -157,8 +159,11 @@ class AlbaService(object):
         получение информации о шлюзе
         gate короткое имя шлюза
         """
-        params = {'api_key': self.secret, 'gate': gate}
         url = self.BASE_URL + "a1lite/gate_details/"
+        params = {'version': '2.0',
+                  'gate': gate,
+                  'service_id': self.service_id}
+        params['check'] = sign("GET", url, params, self.secret)
         answer = self._get(url, params)
         return answer
 
