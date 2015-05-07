@@ -78,9 +78,10 @@ class AlbaService(object):
         except requests.ConnectionError, e:
             raise AlbaException(e)
 
-        self.logger.debug(u'Server response: {}'.format(response.content))
+        content = response.content.decode('utf-8')
+        self.logger.debug(u'Server response: {}'.format(content))
 
-        json_response = json.loads(response.content)
+        json_response = json.loads(content)
         if json_response['status'] == 'error':
             msg = json_response.get('msg', json_response.get('message'))
             code = json_response.get('code', 'unknown')
@@ -103,7 +104,9 @@ class AlbaService(object):
                (self.BASE_URL, self.service_id, check))
         return self._get(url)['types']
 
-    def init_payment(self, pay_type, cost, name, email, phone, order_id=False):
+
+    def init_payment(self, pay_type, cost, name, email, phone,
+                     order_id=None, comment=None, bank_params=None):
         """
         Инициация оплаты
         pay_type способ оплаты
@@ -111,6 +114,8 @@ class AlbaService(object):
         name наименование товара
         email e-mail покупателя
         order_id идентификатор заказа
+        comment комментарий заказа
+        bank_params параметры для перевода на реквизиты
         """
         fields = {
             "cost": cost,
@@ -122,8 +127,13 @@ class AlbaService(object):
             "service_id": self.service_id,
             "version": "2.0"
         }
-        if order_id is not False:
+        if order_id:
             fields['order_id'] = order_id
+        if comment:
+            fields['comment'] = comment
+        if bank_params:
+            for bkey, bval in bank_params.items():
+                fields[bkey] = bval
 
         url = self.BASE_URL + "a1lite/input/"
         fields['check'] = sign("POST", url, fields, self.secret)
@@ -135,8 +145,9 @@ class AlbaService(object):
         Получение информации о транзакции
         tid идентификатор транзакции
         """
-        params = {'api_key': self.secret, 'tid': tid}
+        params = {'tid': tid, 'version': '2.0'}
         url = self.BASE_URL + "a1lite/details/"
+        params['check'] = sign("POST", url, params, self.secret)
         answer = self._post(url, params)
         return answer
 
@@ -145,10 +156,11 @@ class AlbaService(object):
         проведение возврата
         gate короткое имя шлюза
         """
-        fields = {'api_key': self.secret,
-                  'amount': amount,
-                  'tid': tid}
         url = self.BASE_URL + "a1lite/refund/"
+        fields = {'amount': amount,
+                  'version': '2.0',
+                  'tid': tid}
+        fields['check'] = sign("POST", url, fields, self.secret)
         answer = self._post(url, fields)
         return answer
 
@@ -157,8 +169,11 @@ class AlbaService(object):
         получение информации о шлюзе
         gate короткое имя шлюза
         """
-        params = {'api_key': self.secret, 'gate': gate}
         url = self.BASE_URL + "a1lite/gate_details/"
+        params = {'version': '2.0',
+                  'gate': gate,
+                  'service_id': self.service_id}
+        params['check'] = sign("GET", url, params, self.secret)
         answer = self._get(url, params)
         return answer
 
