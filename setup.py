@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "alba-client-python",
-    version = "1.0.1",
+    version = "1.0.2",
     url = 'https://github.com/RFIBANK/alba-client-python',
     license = 'GPL v3',
     description = "API client for Alba.",
