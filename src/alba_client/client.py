@@ -31,7 +31,7 @@ def sign(method, url, params, secret_key, exclude=['check', 'mac']):
 
     data = "\n".join([
         method,
-        url_parsed.netloc,
+        url_parsed.hostname,
         url_parsed.path,
         "&".join(result)
     ])
