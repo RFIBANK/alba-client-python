@@ -151,7 +151,7 @@ class AlbaService(object):
         answer = self._post(url, params)
         return answer
 
-    def refund(self, tid, amount):
+    def refund(self, tid, amount, test=False):
         """
         проведение возврата
         gate короткое имя шлюза
@@ -160,6 +160,8 @@ class AlbaService(object):
         fields = {'amount': amount,
                   'version': '2.0',
                   'tid': tid}
+        if test:
+            fields['test'] = '1'
         fields['check'] = sign("POST", url, fields, self.secret)
         answer = self._post(url, fields)
         return answer
