@@ -106,7 +106,8 @@ class AlbaService(object):
 
 
     def init_payment(self, pay_type, cost, name, email, phone,
-                     order_id=None, comment=None, bank_params=None):
+                     order_id=None, comment=None, bank_params=None
+                     commission=None):
         """
         Инициация оплаты
         pay_type способ оплаты
@@ -116,6 +117,8 @@ class AlbaService(object):
         order_id идентификатор заказа
         comment комментарий заказа
         bank_params параметры для перевода на реквизиты
+        comission на ком лежит комиссия на абоненте или партнере
+          допустимые значение: 'partner', 'abonent'
         """
         fields = {
             "cost": cost,
@@ -134,6 +137,8 @@ class AlbaService(object):
         if bank_params:
             for bkey, bval in bank_params.items():
                 fields[bkey] = bval
+        if commission:
+            fields['commission'] = commission
 
         url = self.BASE_URL + "a1lite/input/"
         fields['check'] = sign("POST", url, fields, self.secret)
