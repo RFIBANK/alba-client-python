@@ -106,7 +106,7 @@ class AlbaService(object):
 
 
     def init_payment(self, pay_type, cost, name, email, phone,
-                     order_id=None, comment=None, bank_params=None
+                     order_id=None, comment=None, bank_params=None,
                      commission=None):
         """
         Инициация оплаты
@@ -117,7 +117,7 @@ class AlbaService(object):
         order_id идентификатор заказа
         comment комментарий заказа
         bank_params параметры для перевода на реквизиты
-        comission на ком лежит комиссия на абоненте или партнере
+        commission на ком лежит комиссия на абоненте или партнере
           допустимые значение: 'partner', 'abonent'
         """
         fields = {
@@ -156,17 +156,22 @@ class AlbaService(object):
         answer = self._post(url, params)
         return answer
 
-    def refund(self, tid, amount, test=False):
+    def refund(self, tid, amount=None, test=False, reason=None):
         """
         проведение возврата
-        gate короткое имя шлюза
         """
         url = self.BASE_URL + "a1lite/refund/"
-        fields = {'amount': amount,
-                  'version': '2.0',
+        fields = {'version': '2.0',
                   'tid': tid}
+        if amount:
+            fields['amount'] = amount
+
         if test:
             fields['test'] = '1'
+
+        if reason:
+            fields['reason'] = reason
+
         fields['check'] = sign("POST", url, fields, self.secret)
         answer = self._post(url, fields)
         return answer
