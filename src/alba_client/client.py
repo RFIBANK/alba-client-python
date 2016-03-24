@@ -100,7 +100,7 @@ class AlbaService(object):
         Полуение списка доступных способов оплаты для сервиса
         """
         check = hashlib.md5(str(self.service_id) + self.secret).hexdigest()
-        url = ("%sa1lite/pay_types/?service_id=%s&check=%s" %
+        url = ("%salba/pay_types/?service_id=%s&check=%s" %
                (self.BASE_URL, self.service_id, check))
         return self._get(url)['types']
 
@@ -140,7 +140,7 @@ class AlbaService(object):
         if commission:
             fields['commission'] = commission
 
-        url = self.BASE_URL + "a1lite/input/"
+        url = self.BASE_URL + "alba/input/"
         fields['check'] = sign("POST", url, fields, self.secret)
 
         return self._post(url, fields)
@@ -151,7 +151,7 @@ class AlbaService(object):
         tid идентификатор транзакции
         """
         params = {'tid': tid, 'version': '2.0'}
-        url = self.BASE_URL + "a1lite/details/"
+        url = self.BASE_URL + "alba/details/"
         params['check'] = sign("POST", url, params, self.secret)
         answer = self._post(url, params)
         return answer
@@ -160,7 +160,7 @@ class AlbaService(object):
         """
         проведение возврата
         """
-        url = self.BASE_URL + "a1lite/refund/"
+        url = self.BASE_URL + "alba/refund/"
         fields = {'version': '2.0',
                   'tid': tid}
         if amount:
@@ -181,7 +181,7 @@ class AlbaService(object):
         получение информации о шлюзе
         gate короткое имя шлюза
         """
-        url = self.BASE_URL + "a1lite/gate_details/"
+        url = self.BASE_URL + "alba/gate_details/"
         params = {'version': '2.0',
                   'gate': gate,
                   'service_id': self.service_id}
