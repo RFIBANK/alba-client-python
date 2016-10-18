@@ -107,7 +107,7 @@ class AlbaService(object):
 
     def init_payment(self, pay_type, cost, name, email, phone,
                      order_id=None, comment=None, bank_params=None,
-                     commission=None):
+                     commission=None, **kwargs):
         """
         Инициация оплаты
         pay_type способ оплаты
@@ -139,6 +139,8 @@ class AlbaService(object):
                 fields[bkey] = bval
         if commission:
             fields['commission'] = commission
+
+        fields.update(kwargs)
 
         url = self.BASE_URL + "alba/input/"
         fields['check'] = sign("POST", url, fields, self.secret)
