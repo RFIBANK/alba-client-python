@@ -5,7 +5,7 @@ import hashlib
 import json
 
 from .sign import sign
-from .exceptions import CODE2EXCEPTION
+from .exceptions import CODE2EXCEPTION, MissArgumentError
 
 
 class AlbaService(object):
@@ -110,13 +110,20 @@ class AlbaService(object):
 
         return self._post(url, fields)
 
-    def transaction_details(self, tid):
+    def transaction_details(self, tid=None, order_id=None):
         """
         Получение информации о транзакции
         tid идентификатор транзакции
         """
-        params = {'tid': tid, 'version': '2.0'}
+        if tid:
+            params = {'tid': tid}
+        elif order_id:
+            params = {'order_id': order_id, 'service_id': self.service_id}
+        else:
+            raise MissArgumentError('Ожидается аргумент tid или order_id')
+
         url = self.BASE_URL + "alba/details/"
+        params['version'] = '2.0'
         params['check'] = sign("POST", url, params, self.secret)
         answer = self._post(url, params)
         return answer
