@@ -5,7 +5,7 @@ import hashlib
 import json
 
 from .sign import sign
-from .exceptions import CODE2EXCEPTION, MissArgumentError
+from .exceptions import CODE2EXCEPTION, MissArgumentError, AlbaException
 
 
 class AlbaService(object):
