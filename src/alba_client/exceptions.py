@@ -20,6 +20,7 @@ class MissArgumentError(AlbaException, ValueError):
 
 CODE2EXCEPTION = {
     'unknown': AlbaException,
+    'common': AlbaException,
     'unique': UniqueError,
     'auth': AuthError,
 }

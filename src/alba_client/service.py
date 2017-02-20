@@ -48,7 +48,7 @@ class AlbaService(object):
         if json_response['status'] == 'error':
             msg = json_response.get('msg', json_response.get('message'))
             code = json_response.get('code', 'unknown')
-            raise CODE2EXCEPTION[code](msg)
+            raise CODE2EXCEPTION.get(code, AlbaException)(msg)
 
         return json_response
 
