@@ -5,8 +5,10 @@ import hashlib
 import hmac
 import urlparse
 
+DEFAULT_SIGN_EXCLUDE = ['check', 'mac', 'check_gate_internal']
 
-def sign(method, url, params, secret_key, exclude=['check', 'mac']):
+
+def sign(method, url, params, secret_key, exclude=DEFAULT_SIGN_EXCLUDE):
     """
     Типовой метод для подписи HTTP запросов
     """
