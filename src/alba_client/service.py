@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import logging
 import requests
 import hashlib
@@ -25,7 +27,7 @@ class AlbaService(object):
 
     def _request(self, url, method, data):
         try:
-            self.logger.debug(u'Sent {} request with params {}'
+            self.logger.debug('Sent {} request with params {}'
                               .format(method.upper(), data))
 
             if method == 'get':
@@ -36,13 +38,13 @@ class AlbaService(object):
             if response.status_code != 200:
                 self.logger.debug(u'Server unavailable: {}'
                                   .format(response.status_code))
-                raise AlbaException(u"Север не доступен: {}"
+                raise AlbaException('Сервер не доступен: {}'
                                     .format(response.status_code))
-        except requests.ConnectionError, e:
+        except requests.ConnectionError as e:
             raise AlbaException(e)
 
         content = response.content.decode('utf-8')
-        self.logger.debug(u'Server response: {}'.format(content))
+        self.logger.debug('Server response: {}'.format(content))
 
         json_response = json.loads(content)
         if json_response['status'] == 'error':
@@ -60,13 +62,13 @@ class AlbaService(object):
 
     def pay_types(self):
         """
-        Полуение списка доступных способов оплаты для сервиса
+        Получение списка доступных способов оплаты для сервиса
         """
-        check = hashlib.md5(str(self.service_id) + self.secret).hexdigest()
+        check = hashlib.md5((str(self.service_id) + self.secret).encode('utf-8'))
+        check = check.hexdigest()
         url = ("%salba/pay_types/?service_id=%s&check=%s" %
                (self.BASE_URL, self.service_id, check))
         return self._get(url)['types']
-
 
     def init_payment(self, pay_type, cost, name, email, phone,
                      order_id=None, comment=None, bank_params=None,
@@ -186,4 +188,4 @@ class AlbaService(object):
                  'version']
         params = [post.get(field, '') for field in order]
         params.append(self.secret)
-        return hashlib.md5(''.join(params)).hexdigest() == post['check']
+        return hashlib.md5((''.join(params)).encode('utf-8')).hexdigest() == post['check']

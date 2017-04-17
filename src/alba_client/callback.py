@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 
 class AlbaCallback(object):
@@ -17,7 +18,7 @@ class AlbaCallback(object):
         """
         if 'service_id' not in post:
             raise AlbaException(
-                u'Отсутствует обязательный параметр service_id')
+                'Отсутствует обязательный параметр service_id')
 
         if post['service_id'] in self.services:
             service = self.services[post['service_id']]
@@ -27,7 +28,7 @@ class AlbaCallback(object):
                 raise AlbaException("Ошибка в подписи")
         else:
             raise AlbaException(
-                u"Неизвестный сервис: %s" % type(post['service_id']))
+                "Неизвестный сервис: %s" % type(post['service_id']))
 
     def callback(self, data):
         """
@@ -43,7 +44,7 @@ class AlbaCallback(object):
             self.callback_refund(data)
         else:
             raise AlbaException(
-                u"Неожиданный тип уведомления: %s" % data['command'])
+                "Неожиданный тип уведомления: %s" % data['command'])
 
     def callback_process(self, data):
         """
