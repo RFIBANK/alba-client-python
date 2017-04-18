@@ -15,8 +15,6 @@ class RecurrentParams(object):
         self.url = url
         self.order_id = order_id
         self.period = period
-        if type_ != self.FIRST or type_ != self.NEXT:
-            raise AlbaException('Некорректный тип')
         if type_ == self.FIRST:
             if not self.url or not self.comment:
                 raise MissArgumentError('Необходимые аргументы: url и comment')

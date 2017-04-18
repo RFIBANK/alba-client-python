@@ -15,9 +15,25 @@ AlbaCallback - обработчик для обратного вызова от 
 
        service = AlbaService(<service-id>, '<service-secret>')
        try:
-           service.init_payment('mc', 10, 'Test', 'test@example.com', '71111111111')
+           response = service.init_payment('mc', 10, 'Test', 'test@example.com', '71111111111')
        except AlbaException, e:
            print e
+           
+Проверка, требуется ли 3-D secure:
+
+       card3ds = response.get('3ds')
+       if card3ds:
+           # Требуется 3-D secure
+           
+Если 3-D secure требуется, то необходимо сделать POST запрос на адрес card3ds['ACSUrl'] с параметрами:
+       
+       PaReq - с значением card3ds['PaReq']
+       MD - с значением card3ds['MD']
+       TermUrl - URL обработчика, на вашем сайте. На него будет возвращён пользователь после прохождения 
+        3DS авторизации на сайте банка-эмитента карты. Этот URL нужно сформировать так, 
+        чтобы в нём передавалась информация о транзакции: рекомендуется передавать service_id, tid и order_id 
+        (если транзакция создана с ним).
+       
 
 Пример использования для обратного вызова:
 
@@ -31,3 +47,7 @@ AlbaCallback - обработчик для обратного вызова от 
        service2 = AlbaService(<service2-id>, '<service2-secret>')
        callback = MyAlbaCallback([service1, service2])
        callback.handle(<словарь-c-POST-данными>)
+       
+
+
+
