@@ -17,7 +17,6 @@ class MissArgumentError(AlbaException, ValueError):
     pass
 
 
-
 CODE2EXCEPTION = {
     'unknown': AlbaException,
     'common': AlbaException,

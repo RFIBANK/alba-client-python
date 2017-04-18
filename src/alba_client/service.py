@@ -6,8 +6,10 @@ import requests
 import hashlib
 import json
 
-from .sign import sign
+from card_token import CardTokenResponse
+from connection import ConnectionProfile
 from .exceptions import CODE2EXCEPTION, MissArgumentError, AlbaException
+from .sign import sign
 
 
 class AlbaService(object):
@@ -20,6 +22,7 @@ class AlbaService(object):
         """
         self.service_id = service_id
         self.secret = secret
+        self.connection_profile = ConnectionProfile.second()
         if logger:
             self.logger = logger
         else:
@@ -72,7 +75,7 @@ class AlbaService(object):
 
     def init_payment(self, pay_type, cost, name, email, phone,
                      order_id=None, comment=None, bank_params=None,
-                     commission=None, **kwargs):
+                     commission=None, card_token=None, **kwargs):
         """
         Инициация оплаты
         pay_type способ оплаты
@@ -104,6 +107,8 @@ class AlbaService(object):
                 fields[bkey] = bval
         if commission:
             fields['commission'] = commission
+        if card_token:
+            fields['card_token'] = card_token
 
         fields.update(kwargs)
 
@@ -189,3 +194,24 @@ class AlbaService(object):
         params = [post.get(field, '') for field in order]
         params.append(self.secret)
         return hashlib.md5((''.join(params)).encode('utf-8')).hexdigest() == post['check']
+
+    def create_card_token(self, request, test):
+        month = request.exp_month
+        if len(month) == 1:
+            month = '0' + month
+
+        params = {
+            'service_id': request.service_id,
+            'card': request.card,
+            'exp_month': month,
+            'exp_year': request.exp_year,
+            'cvc': request.cvc
+        }
+        if request.card_holder:
+            params.update({'card_holder': request.card_holder})
+
+        url = (self.connection_profile.card_token_test_url if test
+               else self.connection_profile.card_token_url)
+        result = self._post(url + 'create', params)
+        response = CardTokenResponse(result)
+        return response
