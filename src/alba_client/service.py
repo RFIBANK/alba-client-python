@@ -6,8 +6,8 @@ import requests
 import hashlib
 import json
 
-from card_token import CardTokenResponse
-from connection import ConnectionProfile
+from .card_token import CardTokenResponse
+from .connection import ConnectionProfile
 from .exceptions import CODE2EXCEPTION, MissArgumentError, AlbaException
 from .sign import sign
 
@@ -75,7 +75,8 @@ class AlbaService(object):
 
     def init_payment(self, pay_type, cost, name, email, phone,
                      order_id=None, comment=None, bank_params=None,
-                     commission=None, card_token=None, **kwargs):
+                     commission=None, card_token=None, recurrent_params=None,
+                     **kwargs):
         """
         Инициация оплаты
         pay_type способ оплаты
@@ -109,6 +110,8 @@ class AlbaService(object):
             fields['commission'] = commission
         if card_token:
             fields['card_token'] = card_token
+        if recurrent_params:
+            fields['recurrent_params'] = recurrent_params
 
         fields.update(kwargs)
 
@@ -193,7 +196,8 @@ class AlbaService(object):
                  'version']
         params = [post.get(field, '') for field in order]
         params.append(self.secret)
-        return hashlib.md5((''.join(params)).encode('utf-8')).hexdigest() == post['check']
+        return hashlib.md5(
+            (''.join(params)).encode('utf-8')).hexdigest() == post['check']
 
     def create_card_token(self, request, test):
         month = request.exp_month
@@ -215,3 +219,14 @@ class AlbaService(object):
         result = self._post(url + 'create', params)
         response = CardTokenResponse(result)
         return response
+
+    def cancel_recurrent_payment(self, order_id):
+        url = self.BASE_URL + 'alba/recurrent_change/'
+        fields = {
+            'operation': 'cancel',
+            'order_id': order_id,
+            'service_id': self.service_id,
+            'version': '2.0'
+        }
+        fields['check'] = sign('POST', url, fields, self.secret)
+        return self._post(url, fields)
