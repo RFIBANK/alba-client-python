@@ -24,11 +24,11 @@ class RecurrentParams(object):
 
     @classmethod
     def first(cls, url, comment):
-        return RecurrentParams(
+        return cls(
             RecurrentParams.FIRST, comment, url, None,
             RecurrentParams.BY_REQUEST)
 
     @classmethod
     def next_(cls, order_id):
-        return RecurrentParams(
+        return cls(
             RecurrentParams.NEXT, None, None, order_id, None)
