@@ -23,12 +23,9 @@ class RecurrentParams(object):
                 raise MissArgumentError('Необходимый аргумент: order_id')
 
     @classmethod
-    def first(cls, url, comment):
-        return cls(
-            RecurrentParams.FIRST, comment, url, None,
-            RecurrentParams.BY_REQUEST)
+    def first_pay(cls, url, comment):
+        return cls(cls.FIRST, comment, url, None, cls.BY_REQUEST)
 
     @classmethod
-    def next_(cls, order_id):
-        return cls(
-            RecurrentParams.NEXT, None, None, order_id, None)
+    def next_pay(cls, order_id):
+        return cls(cls.NEXT, None, None, order_id, None)
