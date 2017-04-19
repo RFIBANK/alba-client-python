@@ -28,21 +28,3 @@ class CardTokenResponse(object):
                             if key not in self.errors:
                                 self.errors.update({key: []})
                             self.errors[key].append(e)
-
-    def has_errors(self):
-        return bool(self.errors)
-
-    def get_card_errors(self):
-        return self.errors.get('card')
-
-    def get_card_holder_errors(self):
-        return self.errors.get('card_holder')
-
-    def get_exp_month_errors(self):
-        return self.errors.get('exp_month')
-
-    def get_exp_year_errors(self):
-        return self.errors.get('exp_year')
-
-    def get_cvc_errors(self):
-        return self.errors.get('cvc')
