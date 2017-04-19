@@ -7,7 +7,7 @@ import hashlib
 import json
 
 from .card_token import CardTokenResponse
-from .connection import ConnectionProfile
+from .connection_profile import ConnectionProfile
 from .exceptions import CODE2EXCEPTION, MissArgumentError, AlbaException
 from .sign import sign
 

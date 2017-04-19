@@ -22,9 +22,4 @@ class CardTokenResponse(object):
                 self.token = str(json_object.get('token'))
             else:
                 if json_object.get('errors'):
-                    json_errors = json_object.get('errors')
-                    for key, errors_array in json_errors.items():
-                        for e in errors_array:
-                            if key not in self.errors:
-                                self.errors.update({key: []})
-                            self.errors[key].append(e)
+                    self.errors.update(json_object.get('errors'))
