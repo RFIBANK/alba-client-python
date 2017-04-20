@@ -26,11 +26,9 @@ class ServiceTestCase(TestCase):
         with requests_mock.mock() as m:
             m.post(self.service.connection_profile['card_token_test_url']
                    + 'create', exc=AlbaException('Invalid data'))
-            try:
+            with self.assertRaises(AlbaException):
                 self.service.create_card_token(
                     '4652060573334999', '01', '17', '067', test=True)
-            except AlbaException as e:
-                self.assertEqual(e.msg, 'Invalid data')
 
     def test_create_service_with_custom_connection_profile_and_loger(self):
         service = AlbaService(
@@ -100,42 +98,34 @@ class ServiceTestCase(TestCase):
         with requests_mock.mock() as m:
             m.post(self.service.connection_profile['base_url'] + 'alba/input/',
                    json={'status': 'success', 'tid': 100})
-            try:
+            with self.assertRaises(AlbaException):
                 recurrent_params = RecurrentParams(
                     'first', None, None, None, 'byrequest')
                 self.service.init_payment(
                     'spg_test', 200, 'Test', 'test@test.ru', '79091234567',
                     order_id=100, recurrent_params=recurrent_params,
                     card_token='token')
-            except AlbaException as e:
-                self.assertEqual(e.msg, 'Необходимые аргументы: url и comment')
 
     def test_init_next_recurrent_payment_without_order_id(self):
         with requests_mock.mock() as m:
             m.post(self.service.connection_profile['base_url'] + 'alba/input/',
                    json={'status': 'success', 'tid': 100})
-            try:
+            with self.assertRaises(AlbaException):
                 recurrent_params = RecurrentParams(
                     'next', None, None, None, None)
                 self.service.init_payment(
                     'spg_test', 200, 'Test', 'test@test.ru', '79091234567',
                     order_id=100, recurrent_params=recurrent_params,
                     card_token='token')
-            except AlbaException as e:
-                self.assertEqual(e.msg, 'Необходимый аргумент: order_id')
 
     def test_init_payment_wrong_phone(self):
         with requests_mock.mock() as m:
             m.post(self.service.connection_profile['base_url'] + 'alba/input/',
                    exc=AlbaException('Данный оператор не поддерживает оплату '
                                      'мобильной коммерции'))
-            try:
+            with self.assertRaises(AlbaException):
                 self.service.init_payment(
                     'mc', 200, 'Test', 'test@test.ru', '79191234567')
-            except AlbaException as e:
-                self.assertEqual(
-                    e.msg, 'Данный оператор не поддерживает оплату '
-                           'мобильной коммерции')
 
     def test_get_transaction_details_by_tid(self):
         with requests_mock.mock() as m:
@@ -164,10 +154,8 @@ class ServiceTestCase(TestCase):
             self.assertEqual(details['income_total'], 200)
 
     def test_get_transaction_details_without_params(self):
-        try:
+        with self.assertRaises(AlbaException):
             self.service.transaction_details()
-        except AlbaException as e:
-            self.assertEqual(e.msg, 'Ожидается аргумент tid или order_id')
 
     def test_get_gate_details(self):
         with requests_mock.mock() as m:
@@ -187,21 +175,17 @@ class ServiceTestCase(TestCase):
         with requests_mock.mock() as m:
             m.post(self.service.connection_profile['base_url'] + 'alba/input/',
                    status_code=404)
-            try:
+            with self.assertRaises(AlbaException):
                 self.service.init_payment(
                     'mc', 200, 'Test', 'test@test.ru', '79091234567')
-            except AlbaException as e:
-                self.assertEqual(e.msg, 'Сервер не доступен: 404')
 
     def test_error_response(self):
         with requests_mock.mock() as m:
             m.post(self.service.connection_profile['base_url'] + 'alba/input/',
                    json={'status': 'error', 'msg': 'Some error'})
-            try:
+            with self.assertRaises(AlbaException):
                 self.service.init_payment(
                     'mc', 200, 'Test', 'test@test.ru', '79091234567')
-            except AlbaException as e:
-                self.assertEqual(e.msg, 'Some error')
 
     def test_get_pay_types(self):
         with requests_mock.mock() as m:
