@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from six import text_type
 from six.moves.urllib.parse import urlparse, quote
 
 import base64
@@ -21,7 +22,7 @@ def sign(method, url, params, secret_key, exclude=DEFAULT_SIGN_EXCLUDE):
     result = []
     for key in keys:
         value = quote(
-            str(params.get(key) or '').encode('utf-8'),
+            text_type(params.get(key) or '').encode('utf-8'),
             safe='~'
         )
         result.append('{}={}'.format(key, value))

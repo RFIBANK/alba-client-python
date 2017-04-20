@@ -6,6 +6,8 @@ import requests
 import hashlib
 import json
 
+from six import text_type
+
 from .exceptions import CODE2EXCEPTION, MissArgumentError, AlbaException
 from .sign import sign
 
@@ -64,8 +66,9 @@ class AlbaService(object):
         if json_response['status'] == 'error':
             msg = json_response.get('msg', json_response.get('message'))
             code = json_response.get('code', 'unknown')
+            errors = json_response.get('errors')
             raise CODE2EXCEPTION.get(code, AlbaException)(
-                msg, errors=json_response['errors'])
+                msg, errors=errors)
 
         return json_response
 
@@ -79,7 +82,8 @@ class AlbaService(object):
         """
         Получение списка доступных способов оплаты для сервиса
         """
-        check = hashlib.md5((str(self.service_id) + self.secret).encode('utf-8'))
+        check = hashlib.md5(
+            (text_type(self.service_id) + self.secret).encode('utf-8'))
         check = check.hexdigest()
         url = ("%salba/pay_types/?service_id=%s&check=%s" %
                (self.connection_profile['base_url'], self.service_id, check))
@@ -188,28 +192,15 @@ class AlbaService(object):
         Обработка нотификации
         array $post Массив $_POST параметров
         """
-        order = ['tid',
-                 'name',
-                 'comment',
-                 'partner_id',
-                 'service_id',
-                 'order_id',
-                 'type',
-                 'cost',
-                 'income_total',
-                 'income',
-                 'partner_income',
-                 'system_income',
-                 'command',
-                 'phone_number',
-                 'email',
-                 'resultStr',
-                 'date_created',
-                 'version']
+        order = ['tid', 'name', 'comment', 'partner_id', 'service_id',
+                 'order_id', 'type', 'cost', 'income_total', 'income',
+                 'partner_income', 'system_income', 'command', 'phone_number',
+                 'email', 'resultStr', 'date_created', 'version']
         params = [post.get(field, '') for field in order]
         params.append(self.secret)
-        return hashlib.md5(
-            (''.join(params)).encode('utf-8')).hexdigest() == post['check']
+        digest_hash = hashlib.md5(
+            (''.join(params)).encode('utf-8')).hexdigest()
+        return digest_hash == post['check']
 
     def create_card_token(
             self, card, exp_month, exp_year, cvc, test,

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from six import text_type
+
 
 class AlbaCallback(object):
 
@@ -9,7 +11,7 @@ class AlbaCallback(object):
         services список сервисов
         """
         self.services = {
-            str(service.service_id): service for service in services
+            text_type(service.service_id): service for service in services
         }
 
     def handle(self, post):
@@ -59,7 +61,7 @@ class AlbaCallback(object):
 
     def callback_recurrent_cancel(self, data):
         """
-        вызывается, когда держатель карты оменил подписку на рекурренты
+        вызывается, когда держатель карты отменил подписку на рекурренты
         """
         pass
 
