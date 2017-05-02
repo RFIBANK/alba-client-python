@@ -1,23 +1,41 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import logging
 import requests
 import hashlib
 import json
 
-from .sign import sign
+from six import text_type
+
 from .exceptions import CODE2EXCEPTION, MissArgumentError, AlbaException
+from .sign import sign
 
 
 class AlbaService(object):
-    BASE_URL = 'https://partner.rficb.ru/'
+    FIRST_CONNECTION_PROFILE = {
+        'base_url': 'https://partner.rficb.ru/',
+        'card_token_url': 'https://secure.rficb.ru/cardtoken/',
+        'card_token_test_url': 'https://test.rficb.ru/cardtoken/'
+    }
+    SECOND_CONNECTION_PROFILE = {
+        'base_url': 'https://partner.rficb.ru/',
+        'card_token_url': 'https://secure.rfibank.ru/cardtoken/',
+        'card_token_test_url': 'https://test.rficb.ru/cardtoken/'
+    }
 
-    def __init__(self, service_id, secret, logger=None):
+    def __init__(self, service_id, secret, connection_profile=None,
+                 logger=None):
         """
         service_id идентификатор сервиса
         secret секретный ключ сервиса
         """
         self.service_id = service_id
         self.secret = secret
+        if not connection_profile:
+            self.connection_profile = self.FIRST_CONNECTION_PROFILE
+        else:
+            self.connection_profile = connection_profile
         if logger:
             self.logger = logger
         else:
@@ -25,7 +43,7 @@ class AlbaService(object):
 
     def _request(self, url, method, data):
         try:
-            self.logger.debug(u'Sent {} request with params {}'
+            self.logger.debug('Sent {} request with params {}'
                               .format(method.upper(), data))
 
             if method == 'get':
@@ -36,19 +54,21 @@ class AlbaService(object):
             if response.status_code != 200:
                 self.logger.debug(u'Server unavailable: {}'
                                   .format(response.status_code))
-                raise AlbaException(u"Север не доступен: {}"
+                raise AlbaException('Сервер не доступен: {}'
                                     .format(response.status_code))
-        except requests.ConnectionError, e:
+        except requests.ConnectionError as e:
             raise AlbaException(e)
 
         content = response.content.decode('utf-8')
-        self.logger.debug(u'Server response: {}'.format(content))
+        self.logger.debug('Server response: {}'.format(content))
 
         json_response = json.loads(content)
         if json_response['status'] == 'error':
             msg = json_response.get('msg', json_response.get('message'))
             code = json_response.get('code', 'unknown')
-            raise CODE2EXCEPTION.get(code, AlbaException)(msg)
+            errors = json_response.get('errors')
+            raise CODE2EXCEPTION.get(code, AlbaException)(
+                msg, errors=errors)
 
         return json_response
 
@@ -60,17 +80,19 @@ class AlbaService(object):
 
     def pay_types(self):
         """
-        Полуение списка доступных способов оплаты для сервиса
+        Получение списка доступных способов оплаты для сервиса
         """
-        check = hashlib.md5(str(self.service_id) + self.secret).hexdigest()
+        check = hashlib.md5(
+            (text_type(self.service_id) + self.secret).encode('utf-8'))
+        check = check.hexdigest()
         url = ("%salba/pay_types/?service_id=%s&check=%s" %
-               (self.BASE_URL, self.service_id, check))
+               (self.connection_profile['base_url'], self.service_id, check))
         return self._get(url)['types']
-
 
     def init_payment(self, pay_type, cost, name, email, phone,
                      order_id=None, comment=None, bank_params=None,
-                     commission=None, **kwargs):
+                     commission=None, card_token=None, recurrent_params=None,
+                     **kwargs):
         """
         Инициация оплаты
         pay_type способ оплаты
@@ -102,10 +124,14 @@ class AlbaService(object):
                 fields[bkey] = bval
         if commission:
             fields['commission'] = commission
+        if card_token:
+            fields['card_token'] = card_token
+        if recurrent_params:
+            fields['recurrent_params'] = recurrent_params
 
         fields.update(kwargs)
 
-        url = self.BASE_URL + "alba/input/"
+        url = self.connection_profile['base_url'] + "alba/input/"
         fields['check'] = sign("POST", url, fields, self.secret)
 
         return self._post(url, fields)
@@ -122,7 +148,7 @@ class AlbaService(object):
         else:
             raise MissArgumentError('Ожидается аргумент tid или order_id')
 
-        url = self.BASE_URL + "alba/details/"
+        url = self.connection_profile['base_url'] + "alba/details/"
         params['version'] = '2.0'
         params['check'] = sign("POST", url, params, self.secret)
         answer = self._post(url, params)
@@ -132,7 +158,7 @@ class AlbaService(object):
         """
         проведение возврата
         """
-        url = self.BASE_URL + "alba/refund/"
+        url = self.connection_profile['base_url'] + "alba/refund/"
         fields = {'version': '2.0',
                   'tid': tid}
         if amount:
@@ -153,7 +179,7 @@ class AlbaService(object):
         получение информации о шлюзе
         gate короткое имя шлюза
         """
-        url = self.BASE_URL + "alba/gate_details/"
+        url = self.connection_profile['base_url'] + "alba/gate_details/"
         params = {'version': '2.0',
                   'gate': gate,
                   'service_id': self.service_id}
@@ -166,24 +192,45 @@ class AlbaService(object):
         Обработка нотификации
         array $post Массив $_POST параметров
         """
-        order = ['tid',
-                 'name',
-                 'comment',
-                 'partner_id',
-                 'service_id',
-                 'order_id',
-                 'type',
-                 'cost',
-                 'income_total',
-                 'income',
-                 'partner_income',
-                 'system_income',
-                 'command',
-                 'phone_number',
-                 'email',
-                 'resultStr',
-                 'date_created',
-                 'version']
+        order = ['tid', 'name', 'comment', 'partner_id', 'service_id',
+                 'order_id', 'type', 'cost', 'income_total', 'income',
+                 'partner_income', 'system_income', 'command', 'phone_number',
+                 'email', 'resultStr', 'date_created', 'version']
         params = [post.get(field, '') for field in order]
         params.append(self.secret)
-        return hashlib.md5(''.join(params)).hexdigest() == post['check']
+        digest_hash = hashlib.md5(
+            (''.join(params)).encode('utf-8')).hexdigest()
+        return digest_hash == post['check']
+
+    def create_card_token(
+            self, card, exp_month, exp_year, cvc, test,
+            card_holder=None):
+        month = exp_month
+        if len(month) == 1:
+            month = '0' + month
+
+        params = {
+            'service_id': self.service_id,
+            'card': card,
+            'exp_month': month,
+            'exp_year': exp_year,
+            'cvc': cvc
+        }
+        if card_holder:
+            params.update({'card_holder': card_holder})
+
+        url = (self.connection_profile['card_token_test_url'] if test
+               else self.connection_profile['card_token_url'])
+        result = self._post(url + 'create', params)
+        return result['token']
+
+    def cancel_recurrent_payment(self, order_id):
+        url = self.connection_profile['base_url'] + 'alba/recurrent_change/'
+        fields = {
+            'operation': 'cancel',
+            'order_id': order_id,
+            'service_id': self.service_id,
+            'version': '2.0'
+        }
+        fields['check'] = sign('POST', url, fields, self.secret)
+        return self._post(url, fields)

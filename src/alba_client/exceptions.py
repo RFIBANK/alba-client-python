@@ -2,7 +2,9 @@
 
 
 class AlbaException(Exception):
-    pass
+    def __init__(self, msg, errors=None):
+        self.msg = msg
+        self.errors = errors or {}
 
 
 class UniqueError(AlbaException):
@@ -15,7 +17,6 @@ class AuthError(AlbaException):
 
 class MissArgumentError(AlbaException, ValueError):
     pass
-
 
 
 CODE2EXCEPTION = {
