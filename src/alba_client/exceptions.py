@@ -2,8 +2,8 @@
 
 
 class AlbaException(Exception):
-    def __init__(self, msg, errors=None):
-        self.msg = msg
+    def __init__(self, message, errors=None):
+        super(AlbaException, self).__init__(message)
         self.errors = errors or {}
 
 
