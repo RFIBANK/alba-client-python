@@ -17,7 +17,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
 
-    install_requires=['setuptools', 'requests'],
+    install_requires=['setuptools', 'requests', 'six'],
 
     classifiers=[
         'Intended Audience :: Developers',
